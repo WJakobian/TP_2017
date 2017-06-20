@@ -101,13 +101,14 @@ human::human(USI level, USI number)
 void human::wait_for_lift()
 {
     HDC hdcTemp = GetDC( hwnd );
+    if(pos_x>SHAFT_X1-20 && pos_x<SHAFT_X2+20)
+	reached_shaft=true;
     if(get_side()==1)
     {
         if(GetPixel(hdcTemp, pos_x+40, pos_y-8)==RGB(255,255,255))
             pos_x++;
-        else
+        if(reached_shaft)
             {
-            reached_shaft=true;
             set_max_or_min(start_level);
             set_max_or_min(dest_level);
             }
@@ -116,9 +117,8 @@ void human::wait_for_lift()
         {
         if(GetPixel(hdcTemp, pos_x-10, pos_y)==RGB(255,255,255))
             pos_x--;
-        else
+        if(reached_shaft)
             {
-            reached_shaft=true;
             set_max_or_min(start_level);
             set_max_or_min(dest_level);
             }
@@ -226,6 +226,8 @@ bool humans_exit_lift(HDC hdcBufor)
         delete_human(delete_id);
     if(everyone_out==true)
     {
+	if(buttons_on_level[lift.current_level]==4)
+		buttons_on_level[lift.current_level]=0;
         lift.current_state=3;
         return true;
     }
@@ -250,7 +252,7 @@ bool humans_enter_lift(HDC hdcBufor, USI number)            //TRUE WHEN ALL IN  
         {
             if(it->get_level()==lift.current_level && (it->get_dir()==lift.direction || lift.current_level==lift.max_level || lift.current_level==lift.min_level)) //! co gdy winda wjedzie na max floor i bedzie miala zjechac w dol
             {
-            if(j>=number)
+            if(j>=number && j<8)
                 {
                 it->enter_lift();
                 if(it->get_side()!=0)
@@ -359,10 +361,8 @@ void lift_move(HDC hdcBufor)
    if(lift.direction==2)
    {
        lift.current_level=4-(((lift.pos_y+lift.height-15)/lift.height));
-        if(lift.current_level<0)
+        if(lift.current_level>10)
             lift.current_level=0;
-        if(lift.current_level>4)
-            lift.current_level=4;
        if(lift.current_level!=lift.max_level)
             lift_change_state(2,hdcBufor);
         else
@@ -390,10 +390,8 @@ void lift_move(HDC hdcBufor)
    else if(lift.direction==1)
    {
        lift.current_level=4-(((lift.pos_y-15)/lift.height));
-        if(lift.current_level<0)
+        if(lift.current_level>10)
             lift.current_level=0;
-        if(lift.current_level>4)
-            lift.current_level=4;
         if(lift.current_level!=lift.min_level)
             lift_change_state(1,hdcBufor);
         else
